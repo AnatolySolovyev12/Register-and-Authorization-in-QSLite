@@ -3,6 +3,7 @@
 #include "auth_window.h"
 #include "reg_window.h"
 #include <QtDebug>
+#include <QFileDialog>
 
 main_window::main_window(QWidget *parent)
     : QMainWindow(parent)
@@ -39,9 +40,9 @@ main_window::main_window(QWidget *parent)
         "width INTEGER, "
         "length INTEGER );";
 
-    if (!query.exec(db_input)) // exec - для выполнения SQL запроса. Синтаксис должен отвечать запрашиваемой БД.
+    if (!query.exec(db_input)) // Выполняем запрос. exec - вернёт true если успешно. Синтаксис должен отвечать запрашиваемой БД.
     {
-        qDebug() << "Unable to create a table" << query.lastError(); // Возвращаем информацию о последней ошибке, таковая имеется при выполнении этого запроса.
+        qDebug() << "Unable to create a table" << query.lastError(); // Возвращаем информацию о последней ошибке. При вывзове exec, получая ошибку, она помещается в lastError(). Мы можем её прочитать..
     }
     else
     {
@@ -70,13 +71,13 @@ main_window::~main_window()
     }
     mw_db.removeDatabase("authorisation"); // удаляет соединение с БД с именем из скобок.
     qDebug() << "MainWindow Destroyed";
-  //  delete ui_Main;
+   // delete ui_Main;
     exit(0);
 }
 
 bool main_window::connectDB()
 {
-    mw_db = QSqlDatabase::addDatabase("QSQLITE"); // указываем какой использовать драйвер для подключения к БД
+    mw_db = QSqlDatabase::addDatabase("QSQLITE"); // указываем какой использовать драйвер для подключения к БД и имя подключения. Если имя не задано то пор умолчанию подключаемся к этой базе. Вроде так.
     mw_db.setDatabaseName("authorisation"); // Указываем с какой БД взаимодействовать. Если такого имени не найдёт то файл БД с указанным именем будет создан.
 
     if (!mw_db.open()) // открываем БД. Если не открывает то вернёт false
@@ -87,17 +88,6 @@ bool main_window::connectDB()
 
     return true;
 }
-
-
-
-
-void main_window::test()
-{
-    qDebug() << "TEST!";
-}
-
-
-
 
 void main_window::authorizeUser()
 {
@@ -192,7 +182,7 @@ void main_window::registerUser()
 
         db_input = str_t;
 
-        if (!query.exec(db_input)) // query получает результат запроса и exec возвращает true если запросы был выполнен
+        if (!query.exec(db_input)) // Отправляем запрос на количество записей
         {
             qDebug() << "Unable to get number " << query.lastError() << " : " << query.lastQuery();
             return;
@@ -202,18 +192,21 @@ void main_window::registerUser()
 
             query.next(); // преходим на следующиую строку (если exec вернул 8 то переходим к 9-ой строке)
 
-            rec = query.record();// record - возвращает QSqlRecord содержащий информацию о поле для текущего запроса
+            rec = query.record();// record - возвращает QSqlRecord содержащий информацию относящуюся к запросу
+            // number = a_query.value(rec.indexOf("number")).toInt(); - так можно получить индекс столбца "number"
 
             // поля нумеруются слева направо. Например в "SELECT forename, surname FROM people;" поле 0 это "forename" а поле 1 это "surname".
             user_counter = rec.value(0).toInt(); 
-            qDebug() << "user_counter = " << user_counter;
+            qDebug() << "Was user_counter = " << user_counter;
         }
 
 
         m_username = ui_Reg.getName();
         m_userpass = ui_Reg.getPass();
+       
         user_counter++;
-        qDebug() << "user_counter = " << user_counter << Qt::endl;
+        qDebug() << "Now user_counter = " << user_counter << Qt::endl;
+       
         // INSERT + VALUES - определяет одинокую строку со значениями описанными в VALUES. INTO позволяет указать в какую именно таблицу произвести запись
         str_t = "INSERT INTO userlist(number, name, pass, xpos, ypos, width, length)"
             "VALUES(%1, '%2', '%3', %4, %5, %6, %7);"; // VALUES - определяет те значения которые будут записаниы в строку
@@ -245,3 +238,14 @@ void main_window::display()
 {
     ui_Auth.show();
 }
+
+
+
+
+
+
+
+
+
+
+

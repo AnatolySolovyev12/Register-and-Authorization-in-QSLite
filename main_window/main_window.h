@@ -44,7 +44,7 @@ private:
     Ui_BarMessege ui_Main;
     
 private:
-    void test();
+
 
     void authorizeUser(); // пользовательские слоты
     void registerWindowShow();
